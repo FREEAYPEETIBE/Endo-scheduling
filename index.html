@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Endo Scheduling System</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 min-h-screen flex flex-col antialiased selection:bg-teal-100 selection:text-teal-800">
+
+  <!-- Navbar -->
+  <header class="bg-teal-700 text-white shadow-md sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2">
+      <!-- Left: Admin Login / Status -->
+      <div id="adminNavSection" class="shrink-0">
+        <button id="openAuthModalBtn" onclick="openAuthModal()" class="bg-teal-800 hover:bg-teal-900 active:scale-95 text-white px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center gap-1.5 sm:gap-2">
+          <i class="fa-solid fa-user-shield text-xs sm:text-sm"></i>
+          <span>Admin Login</span>
+        </button>
+      </div>
+
+      <!-- Center: Title -->
+      <div class="text-center truncate px-1">
+        <h1 class="text-base sm:text-xl md:text-2xl font-bold tracking-tight truncate">Endo Scheduling</h1>
+        <p class="text-[10px] sm:text-xs text-teal-200 hidden sm:block">Endodontics Procedure Slot Management</p>
+      </div>
+
+      <!-- Right: Contact Admin Messenger Link -->
+      <div class="shrink-0">
+        <a href="https://m.me/NZM.loading" target="_blank" rel="noopener noreferrer" 
+           class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center gap-1.5 sm:gap-2 shadow-sm">
+          <i class="fa-brands fa-facebook-messenger text-sm sm:text-base"></i>
+          <span class="hidden sm:inline">Contact Admin</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-4 md:p-6 flex flex-col gap-4 sm:gap-6">
+    
+    <!-- Legend & Overview -->
+    <div class="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+      <div class="flex items-start sm:items-center gap-2 text-xs sm:text-sm text-slate-600">
+        <i class="fa-solid fa-circle-info text-teal-600 mt-0.5 sm:mt-0 text-sm"></i>
+        <span>Maximum of 8 slots per day (4 Morning / 4 Afternoon).
+Tap a date to view or manage the available schedules.
+How to secure a slot:
+• Check your preferred date and make sure a slot is available.
+• Tap the Messenger icon to send your schedule request.
+• Use the following format:
+DATE – MORNING/AFTERNOON/WHOLE DAY – 31/32/41/42 – C.I.</span>
+      </div>
+      <div class="flex items-center gap-3 sm:gap-4 text-[11px] sm:text-xs font-semibold self-start sm:self-auto shrink-0">
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-500 inline-block"></span> Available</span>
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-amber-500 inline-block"></span> Partial</span>
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-rose-500 inline-block"></span> Full</span>
+      </div>
+    </div>
+
+    <!-- Calendar Controls -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="p-3.5 sm:p-4 md:p-6 bg-slate-100 border-b border-slate-200 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 sm:gap-3">
+          <h2 id="monthYearHeader" class="text-base sm:text-xl md:text-2xl font-bold text-slate-800 truncate">September 2026</h2>
+          <button onclick="goToToday()" class="text-[11px] sm:text-xs font-semibold bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 active:scale-95 px-2 sm:px-2.5 py-1 rounded-md shadow-sm transition">Today</button>
+        </div>
+        <div class="flex items-center gap-1 sm:gap-2 shrink-0">
+          <button onclick="changeMonth(-1)" class="p-1.5 sm:p-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 active:scale-95 text-slate-700 shadow-sm transition">
+            <i class="fa-solid fa-chevron-left text-xs sm:text-sm"></i>
+          </button>
+          <button onclick="changeMonth(1)" class="p-1.5 sm:p-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 active:scale-95 text-slate-700 shadow-sm transition">
+            <i class="fa-solid fa-chevron-right text-xs sm:text-sm"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Calendar Header Days -->
+      <div class="calendar-grid bg-slate-200 text-center text-[10px] sm:text-xs font-bold text-slate-600 border-b border-slate-200 py-2">
+        <div><span class="sm:hidden">S</span><span class="hidden sm:inline">SUN</span></div>
+        <div><span class="sm:hidden">M</span><span class="hidden sm:inline">MON</span></div>
+        <div><span class="sm:hidden">T</span><span class="hidden sm:inline">TUE</span></div>
+        <div><span class="sm:hidden">W</span><span class="hidden sm:inline">WED</span></div>
+        <div><span class="sm:hidden">T</span><span class="hidden sm:inline">THU</span></div>
+        <div><span class="sm:hidden">F</span><span class="hidden sm:inline">FRI</span></div>
+        <div><span class="sm:hidden">S</span><span class="hidden sm:inline">SAT</span></div>
+      </div>
+
+      <!-- Calendar Grid Cells -->
+      <div id="calendarGrid" class="calendar-grid bg-slate-200 gap-px">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </main>
+
+  <!-- Date Details Modal -->
+  <div id="dateModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90dvh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-150">
+      
+      <!-- Modal Header -->
+      <div class="bg-teal-700 text-white p-3.5 sm:p-4 md:p-5 flex items-center justify-between gap-2">
+        <div>
+          <h3 id="modalDateTitle" class="text-base sm:text-lg md:text-xl font-bold">Selected Date</h3>
+          <p id="modalSlotStatus" class="text-[11px] sm:text-xs text-teal-200 mt-0.5">0 / 8 Slots Booked</p>
+        </div>
+        <button onclick="closeDateModal()" class="text-teal-100 hover:text-white p-1 rounded-lg transition active:scale-95">
+          <i class="fa-solid fa-xmark text-lg sm:text-xl"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-3.5 sm:p-4 md:p-6 overflow-y-auto space-y-5 sm:space-y-6 flex-1">
+
+        <!-- Admin Add Form (Visible only when Admin) -->
+        <div id="adminFormSection" class="hidden bg-slate-50 p-3.5 sm:p-4 rounded-xl border border-teal-200">
+          <h4 class="text-xs sm:text-sm font-bold text-teal-800 mb-3 flex items-center gap-2">
+            <i class="fa-solid fa-plus-circle"></i> Add New Appointment (Admin)
+          </h4>
+          <form id="scheduleForm" onsubmit="handleAddSchedule(event)" class="space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[11px] sm:text-xs font-semibold text-slate-600 mb-1">Patient Name</label>
+                <input type="text" id="patientName" required placeholder="Full Name" class="w-full px-3 py-2 text-base sm:text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none">
+              </div>
+              <div>
+                <label class="block text-[11px] sm:text-xs font-semibold text-slate-600 mb-1">Procedure / Details</label>
+                <input type="text" id="procedureName" required placeholder="e.g. Upper GI Endoscopy" class="w-full px-3 py-2 text-base sm:text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none">
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[11px] sm:text-xs font-semibold text-slate-600 mb-1">Shift Slot</label>
+                <select id="shiftSelect" required class="w-full px-3 py-2 text-base sm:text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none bg-white">
+                  <option value="morning">Morning Shift (Max 4)</option>
+                  <option value="afternoon">Afternoon Shift (Max 4)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[11px] sm:text-xs font-semibold text-slate-600 mb-1">Notes (Optional)</label>
+                <input type="text" id="patientNotes" placeholder="NPO status, contact info, etc." class="w-full px-3 py-2 text-base sm:text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none">
+              </div>
+            </div>
+            <button type="submit" id="addScheduleBtn" class="w-full bg-teal-600 hover:bg-teal-700 active:scale-98 text-white font-medium py-2.5 rounded-lg text-xs sm:text-sm transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-calendar-plus"></i> Save Schedule
+            </button>
+          </form>
+        </div>
+
+        <!-- Shift 1: Morning -->
+        <div>
+          <div class="flex items-center justify-between mb-3 border-b border-slate-200 pb-2">
+            <h4 class="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-2">
+              <i class="fa-solid fa-sun text-amber-500"></i> Morning Shift
+            </h4>
+            <span id="morningBadge" class="text-[11px] sm:text-xs px-2 sm:px-2.5 py-0.5 rounded-full font-medium bg-slate-100 text-slate-600">0 / 4 Slots</span>
+          </div>
+          <div id="morningList" class="space-y-2">
+            <!-- Morning Patients -->
+          </div>
+        </div>
+
+        <!-- Shift 2: Afternoon -->
+        <div>
+          <div class="flex items-center justify-between mb-3 border-b border-slate-200 pb-2">
+            <h4 class="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-2">
+              <i class="fa-solid fa-cloud-sun text-orange-500"></i> Afternoon Shift
+            </h4>
+            <span id="afternoonBadge" class="text-[11px] sm:text-xs px-2 sm:px-2.5 py-0.5 rounded-full font-medium bg-slate-100 text-slate-600">0 / 4 Slots</span>
+          </div>
+          <div id="afternoonList" class="space-y-2">
+            <!-- Afternoon Patients -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Auth Modal -->
+  <div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-5 sm:p-6 space-y-4">
+      <div class="flex items-center justify-between border-b pb-3">
+        <h3 class="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-user-lock text-teal-600"></i> Admin Panel Login
+        </h3>
+        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-slate-600 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="loginForm" onsubmit="handleAdminLogin(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-[11px] sm:text-xs font-semibold text-slate-600 mb-1">Admin Email</label>
+          <input type="email" id="adminEmail" required placeholder="admin@endo.com" class="w-full px-3 py-2 text-base sm:text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-[11px] sm:text-xs font-semibold text-slate-600 mb-1">Password</label>
+          <input type="password" id="adminPassword" required placeholder="••••••••" class="w-full px-3 py-2 text-base sm:text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none">
+        </div>
+        
+        <div id="authError" class="hidden text-xs text-rose-600 bg-rose-50 p-2.5 rounded-lg border border-rose-200"></div>
+
+        <button type="submit" class="w-full bg-teal-700 hover:bg-teal-800 active:scale-98 text-white font-medium py-2.5 rounded-lg text-xs sm:text-sm transition">
+          Sign In as Admin
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Firebase Script Integration -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyBbW895Q0jiqocodAluVMK43ini40ikqBQ",
+      authDomain: "endo-scheduling-6a2a9.firebaseapp.com",
+      databaseURL: "https://endo-scheduling-6a2a9-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "endo-scheduling-6a2a9",
+      storageBucket: "endo-scheduling-6a2a9.firebasestorage.app",
+      messagingSenderId: "106403062415",
+      appId: "1:106403062415:web:5eee92e9592d8417f986fa",
+      measurementId: "G-HQ305WMZK0"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+
+    // App State
+    let currentDate = new Date();
+    let schedulesData = {};
+    let selectedDateStr = null;
+    let isAdminLoggedIn = false;
+
+    // Realtime Listener for Firebase Database Schedules
+    const schedulesRef = ref(db, 'schedules');
+    onValue(schedulesRef, (snapshot) => {
+      schedulesData = snapshot.val() || {};
+      renderCalendar();
+      if (selectedDateStr) {
+        renderModalDateDetails(selectedDateStr);
+      }
+    });
+
+    // Auth State Changed Listener
+    onAuthStateChanged(auth, (user) => {
+      isAdminLoggedIn = !!user;
+      renderAdminNav();
+      if (selectedDateStr) {
+        renderModalDateDetails(selectedDateStr);
+      }
+    });
+
+    // Render Navbar Admin Controls
+    function renderAdminNav() {
+      const navContainer = document.getElementById('adminNavSection');
+      if (isAdminLoggedIn) {
+        navContainer.innerHTML = `
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <span class="bg-amber-400 text-slate-900 text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-1 rounded-md">
+              <i class="fa-solid fa-user-check"></i> <span class="hidden xs:inline">Admin Mode</span>
+            </span>
+            <button onclick="handleAdminLogout()" class="bg-teal-900 hover:bg-slate-800 text-white px-2 sm:px-2.5 py-1 rounded-lg text-[10px] sm:text-xs transition">
+              Logout
+            </button>
+          </div>
+        `;
+      } else {
+        navContainer.innerHTML = `
+          <button onclick="openAuthModal()" class="bg-teal-800 hover:bg-teal-900 active:scale-95 text-white px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center gap-1.5 sm:gap-2">
+            <i class="fa-solid fa-user-shield text-xs sm:text-sm"></i>
+            <span>Admin Login</span>
+          </button>
+        `;
+      }
+    }
+
+    // Calendar Functions
+    window.changeMonth = function(delta) {
+      currentDate.setMonth(currentDate.getMonth() + delta);
+      renderCalendar();
+    };
+
+    window.goToToday = function() {
+      currentDate = new Date();
+      renderCalendar();
+    };
+
+    function formatDateKey(year, month, day) {
+      const m = String(month + 1).padStart(2, '0');
+      const d = String(day).padStart(2, '0');
+      return `${year}-${m}-${d}`;
+    }
+
+    function renderCalendar() {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+
+      const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+      ];
+
+      document.getElementById('monthYearHeader').innerText = `${monthNames[month]} ${year}`;
+
+      const firstDayIndex = new Date(year, month, 1).getDay();
+      const totalDays = new Date(year, month + 1, 0).getDate();
+      const prevMonthTotalDays = new Date(year, month, 0).getDate();
+
+      const grid = document.getElementById('calendarGrid');
+      grid.innerHTML = '';
+
+      const today = new Date();
+      const todayStr = formatDateKey(today.getFullYear(), today.getMonth(), today.getDate());
+
+      // Padding previous month days
+      for (let i = firstDayIndex - 1; i >= 0; i--) {
+        const dayNum = prevMonthTotalDays - i;
+        const div = document.createElement('div');
+        div.className = 'bg-slate-50 opacity-40 p-1 sm:p-2 min-h-[70px] sm:min-h-[90px] md:min-h-[110px] flex flex-col justify-between cursor-not-allowed';
+        div.innerHTML = `<span class="text-[10px] sm:text-xs font-semibold text-slate-400">${dayNum}</span>`;
+        grid.appendChild(div);
+      }
+
+      // Current month days
+      for (let day = 1; day <= totalDays; day++) {
+        const dateKey = formatDateKey(year, month, day);
+        const daySchedules = schedulesData[dateKey] ? Object.values(schedulesData[dateKey]) : [];
+        
+        const morningCount = daySchedules.filter(s => s.shift === 'morning').length;
+        const afternoonCount = daySchedules.filter(s => s.shift === 'afternoon').length;
+        const totalCount = morningCount + afternoonCount;
+
+        const isFullSlot = (morningCount >= 4 && afternoonCount >= 4) || totalCount >= 8;
+        const isToday = dateKey === todayStr;
+
+        const div = document.createElement('div');
+        div.className = `bg-white p-1 sm:p-2 min-h-[70px] sm:min-h-[90px] md:min-h-[110px] flex flex-col justify-between cursor-pointer hover:bg-teal-50/50 active:bg-teal-100/60 transition border border-transparent hover:border-teal-300 relative ${isToday ? 'ring-2 ring-teal-500 ring-inset font-bold' : ''}`;
+        
+        div.onclick = () => openDateModal(dateKey, year, month, day);
+
+        let badgeHtml = '';
+        if (isFullSlot) {
+          badgeHtml = `<span class="bg-rose-500 text-white text-[9px] sm:text-[10px] font-bold px-1 sm:px-1.5 py-0.5 rounded shadow-sm text-center tracking-tight uppercase block truncate">Full</span>`;
+        } else if (totalCount > 0) {
+          badgeHtml = `<span class="bg-amber-100 text-amber-800 border border-amber-300 text-[9px] sm:text-[10px] font-semibold px-1 sm:px-1.5 py-0.5 rounded text-center block truncate">${totalCount}/8</span>`;
+        } else {
+          badgeHtml = `<span class="text-[9px] sm:text-[10px] text-slate-400 font-medium block truncate">Free</span>`;
+        }
+
+        div.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-xs sm:text-sm font-bold ${isToday ? 'bg-teal-600 text-white w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[10px] sm:text-xs' : 'text-slate-700'}">${day}</span>
+            ${isFullSlot ? '<i class="fa-solid fa-lock text-rose-500 text-[10px] sm:text-xs"></i>' : ''}
+          </div>
+
+          <div class="space-y-0.5 sm:space-y-1 mt-1">
+            <div class="text-[9px] sm:text-[10px] text-slate-500 space-y-0.5 hidden sm:block">
+              <div class="flex justify-between"><span>AM:</span> <span class="font-semibold ${morningCount>=4?'text-rose-600':'text-teal-700'}">${morningCount}/4</span></div>
+              <div class="flex justify-between"><span>PM:</span> <span class="font-semibold ${afternoonCount>=4?'text-rose-600':'text-teal-700'}">${afternoonCount}/4</span></div>
+            </div>
+            ${badgeHtml}
+          </div>
+        `;
+
+        grid.appendChild(div);
+      }
+
+      // Fill remaining calendar grid cells
+      const totalCells = firstDayIndex + totalDays;
+      const nextMonthPadding = (7 - (totalCells % 7)) % 7;
+      for (let i = 1; i <= nextMonthPadding; i++) {
+        const div = document.createElement('div');
+        div.className = 'bg-slate-50 opacity-40 p-1 sm:p-2 min-h-[70px] sm:min-h-[90px] md:min-h-[110px] flex flex-col justify-between cursor-not-allowed';
+        div.innerHTML = `<span class="text-[10px] sm:text-xs font-semibold text-slate-400">${i}</span>`;
+        grid.appendChild(div);
+      }
+    }
+
+    // Modal Details Logic
+    window.openDateModal = function(dateKey, year, month, day) {
+      selectedDateStr = dateKey;
+      const formattedDate = new Date(year, month, day).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+      document.getElementById('modalDateTitle').innerText = formattedDate;
+      renderModalDateDetails(dateKey);
+      document.getElementById('dateModal').classList.remove('hidden');
+    };
+
+    window.closeDateModal = function() {
+      document.getElementById('dateModal').classList.add('hidden');
+      selectedDateStr = null;
+    };
+
+    function renderModalDateDetails(dateKey) {
+      const dayData = schedulesData[dateKey] || {};
+      const entries = Object.entries(dayData).map(([id, val]) => ({ id, ...val }));
+
+      const morningEntries = entries.filter(e => e.shift === 'morning');
+      const afternoonEntries = entries.filter(e => e.shift === 'afternoon');
+
+      const morningCount = morningEntries.length;
+      const afternoonCount = afternoonEntries.length;
+      const total = morningCount + afternoonCount;
+
+      // Slot count indicators
+      document.getElementById('modalSlotStatus').innerText = `${total} / 8 Total Slots Booked ${total >= 8 ? '(FULL SLOT)' : ''}`;
+      
+      document.getElementById('morningBadge').innerText = `${morningCount} / 4 Slots`;
+      document.getElementById('morningBadge').className = morningCount >= 4 ? 'text-[11px] sm:text-xs px-2.5 py-0.5 rounded-full font-bold bg-rose-100 text-rose-700' : 'text-[11px] sm:text-xs px-2.5 py-0.5 rounded-full font-medium bg-slate-100 text-slate-600';
+
+      document.getElementById('afternoonBadge').innerText = `${afternoonCount} / 4 Slots`;
+      document.getElementById('afternoonBadge').className = afternoonCount >= 4 ? 'text-[11px] sm:text-xs px-2.5 py-0.5 rounded-full font-bold bg-rose-100 text-rose-700' : 'text-[11px] sm:text-xs px-2.5 py-0.5 rounded-full font-medium bg-slate-100 text-slate-600';
+
+      // Toggle Admin Form
+      const adminFormSection = document.getElementById('adminFormSection');
+      if (isAdminLoggedIn) {
+        adminFormSection.classList.remove('hidden');
+      } else {
+        adminFormSection.classList.add('hidden');
+      }
+
+      // Render Shift Lists
+      renderShiftList('morningList', morningEntries, 4);
+      renderShiftList('afternoonList', afternoonEntries, 4);
+    }
+
+    function renderShiftList(containerId, entries, maxSlots) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+
+      // Filled slots
+      entries.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'bg-white border border-slate-200 rounded-xl p-2.5 sm:p-3 shadow-sm flex items-center justify-between gap-2 sm:gap-3';
+        div.innerHTML = `
+          <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-teal-100 text-teal-800 text-[11px] sm:text-xs font-bold flex items-center justify-center shrink-0">${index + 1}</span>
+            <div class="min-w-0 truncate">
+              <p class="text-xs sm:text-sm font-bold text-slate-800 truncate">${escapeHtml(item.patientName)}</p>
+              <p class="text-[11px] sm:text-xs text-teal-700 font-medium truncate">${escapeHtml(item.procedure)}</p>
+              ${item.notes ? `<p class="text-[10px] sm:text-xs text-slate-400 mt-0.5 truncate"><i class="fa-regular fa-note-sticky"></i> ${escapeHtml(item.notes)}</p>` : ''}
+            </div>
+          </div>
+          ${isAdminLoggedIn ? `
+            <button onclick="deleteSchedule('${item.id}')" class="text-rose-500 hover:bg-rose-50 p-1.5 sm:p-2 rounded-lg transition text-xs font-medium flex items-center gap-1 shrink-0" title="Cancel Slot">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          ` : ''}
+        `;
+        container.appendChild(div);
+      });
+
+      // Remaining Empty slots
+      const remaining = maxSlots - entries.length;
+      for (let i = 0; i < remaining; i++) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'border border-dashed border-slate-200 rounded-xl p-2 sm:p-2.5 text-center text-[11px] sm:text-xs text-slate-400 bg-slate-50/50';
+        emptyDiv.innerText = `Slot ${entries.length + i + 1} Available`;
+        container.appendChild(emptyDiv);
+      }
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return text.replace(/[&<>"']/g, function(m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+      });
+    }
+
+    // Admin Add Schedule Handler
+    window.handleAddSchedule = function(e) {
+      e.preventDefault();
+      if (!isAdminLoggedIn) return;
+
+      const patientName = document.getElementById('patientName').value.trim();
+      const procedure = document.getElementById('procedureName').value.trim();
+      const shift = document.getElementById('shiftSelect').value;
+      const notes = document.getElementById('patientNotes').value.trim();
+
+      if (!selectedDateStr || !patientName || !procedure) return;
+
+      // Validate Shift Capacity
+      const dayData = schedulesData[selectedDateStr] || {};
+      const entries = Object.values(dayData);
+      const shiftCount = entries.filter(item => item.shift === shift).length;
+
+      if (shiftCount >= 4) {
+        alert(`Cannot add: The ${shift.toUpperCase()} shift is already at full capacity (4/4 slots).`);
+        return;
+      }
+
+      const dayRef = ref(db, `schedules/${selectedDateStr}`);
+      push(dayRef, {
+        patientName,
+        procedure,
+        shift,
+        notes,
+        createdAt: new Date().toISOString()
+      }).then(() => {
+        document.getElementById('scheduleForm').reset();
+      }).catch(err => {
+        alert("Error saving schedule: " + err.message);
+      });
+    };
+
+    // Admin Delete Schedule
+    window.deleteSchedule = function(id) {
+      if (!isAdminLoggedIn || !selectedDateStr) return;
+      if (confirm("Are you sure you want to remove this appointment?")) {
+        const itemRef = ref(db, `schedules/${selectedDateStr}/${id}`);
+        remove(itemRef);
+      }
+    };
+
+    // Auth Modal Handlers
+    window.openAuthModal = function() {
+      document.getElementById('authError').classList.add('hidden');
+      document.getElementById('authModal').classList.remove('hidden');
+    };
+
+    window.closeAuthModal = function() {
+      document.getElementById('authModal').classList.add('hidden');
+    };
+
+    window.handleAdminLogin = function(e) {
+      e.preventDefault();
+      const email = document.getElementById('adminEmail').value;
+      const password = document.getElementById('adminPassword').value;
+      const errorDiv = document.getElementById('authError');
+
+      errorDiv.classList.add('hidden');
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then(() => {
+          closeAuthModal();
+          document.getElementById('loginForm').reset();
+        })
+        .catch(err => {
+          errorDiv.innerText = "Login failed: " + err.message;
+          errorDiv.classList.remove('hidden');
+        });
+    };
+
+    window.handleAdminLogout = function() {
+      signOut(auth);
+    };
+
+    // Initial render
+    renderCalendar();
+  </script>
+</body>
+</html>
